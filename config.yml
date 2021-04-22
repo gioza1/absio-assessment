@@ -1,0 +1,35 @@
+logging:
+  level: INFO
+  loggers:
+    com.absio: DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      target: stdout
+      timeZone: UTC
+      logFormat: "%date [%thread] %-5level %logger - %msg%n"
+    - type: file
+      currentLogFilename: ${KEY_LOG_FILE:-log.txt}
+      threshold: ALL
+      queueSize: 512
+      discardingThreshold: 0
+      archive: true
+      archivedLogFilenamePattern: ${KEY_LOG_FILE:-log.txt}-%d.gz
+      archivedFileCount: 5
+      timeZone: UTC
+      logFormat: "%date [%thread] %-5level %logger - %msg%n"
+      bufferSize: 8KiB
+      immediateFlush: true
+
+server:
+  applicationContextPath: /sample
+  adminContextPath: /sample/admin
+  applicationConnectors:
+    - type: http
+      port: 9090
+  adminConnectors:
+    - type: http
+      port: 9091
+
+swagger:
+  resourcePackage: com.sample
