@@ -30,14 +30,16 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public int create(User user) {
-        String sql = "insert into user(username, password) " +
-                     "values(:username, :password)";
+        String sql = "insert into user(username, password, first_name, last_name) " +
+                "values(:username, :password, :first_name, :last_name)";
 
         final KeyHolder holder = new GeneratedKeyHolder();
 
         SqlParameterSource namedParameters = new MapSqlParameterSource()
                 .addValue("username", user.getUsername())
-                .addValue("password", user.getPassword());
+                .addValue("password", user.getPassword())
+                .addValue("first_name", user.getFirst_name())
+                .addValue("last_name", user.getLast_name());
 
         if (jdbc.update(sql, namedParameters, holder) != 1) {
             throw new DatabaseException("There was an error creating a user.");
@@ -52,7 +54,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public boolean delete(int id) {
         String sql = "delete from user " +
-                     "where id = :id";
+                "where id = :id";
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("id", id);
         return jdbc.update(sql, namedParameters) == 1;
     }
@@ -60,12 +62,11 @@ public class UserDaoImpl implements UserDao {
     @Override
     public Optional<User> get(String username) {
         String sql = "select * from user " +
-                     "where username = :username";
+                "where username = :username";
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("username", username);
         try {
             return Optional.of(jdbc.queryForObject(sql, namedParameters, new UserMapper()));
-        }
-        catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }
@@ -73,12 +74,11 @@ public class UserDaoImpl implements UserDao {
     @Override
     public Optional<User> get(int id) {
         String sql = "select * from user " +
-                     "where id = :id";
+                "where id = :id";
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("id", id);
         try {
             return Optional.of(jdbc.queryForObject(sql, namedParameters, new UserMapper()));
-        }
-        catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }
@@ -95,8 +95,27 @@ public class UserDaoImpl implements UserDao {
                 .addValue("username", username)
                 .addValue("password", password);
         String sql = "update user " +
-                     "set password = :password " +
-                     "where username = :username";
+                "set password = :password " +
+                "where username = :username";
         return jdbc.update(sql, namedParameters) == 1;
+    }
+
+    @Override
+    public void update(User user) {
+        String sql = "update user " +
+                "set password = IsNull(:password, password), " +
+                "first_name = :first_name, " +
+                "last_name = :last_name "+
+                "where username = :username";
+
+        SqlParameterSource namedParameters = new MapSqlParameterSource()
+                .addValue("username", user.getUsername())
+                .addValue("password", user.getPassword())
+                .addValue("first_name", user.getFirst_name())
+                .addValue("last_name", user.getLast_name());
+
+        if (jdbc.update(sql, namedParameters) != 1) {
+            throw new DatabaseException("There was an error updating a user.");
+        }
     }
 }

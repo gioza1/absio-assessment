@@ -3,7 +3,9 @@ package com.sample.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.sample.aspect.annotation.Authenticated;
 import com.sample.domain.AuthenticationCredentials;
-import com.sample.dto.*;
+import com.sample.dto.common.validator.ErrorCodeCodes;
+import com.sample.dto.common.validator.ErrorResponse;
+import com.sample.dto.user.*;
 import com.sample.service.UserService;
 import com.sample.session.UserSession;
 import com.sample.util.ModelMapperUtils;
@@ -114,7 +116,7 @@ public class UserResource {
         if (StringUtils.isEmpty(changePasswordDto.getUsername()) && request != null) {
             HttpSession session = request.getSession();
             if (session != null) {
-                UserSession userSession = (UserSession)session.getAttribute(sessionKey);
+                UserSession userSession = (UserSession) session.getAttribute(sessionKey);
                 log.info("Set the username to: " + userSession.getUsername());
                 changePasswordDto.setUsername(userSession.getUsername());
             }
@@ -170,6 +172,83 @@ public class UserResource {
             )})
     public List<UserDto> getUsers() {
         return ModelMapperUtils.mapAll(userService.getUsers(), UserDto.class, userMapper);
+    }
+
+    @PUT
+    @Path("/create")
+    @Timed
+    @ApiOperation(value = "Creates a new user")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    code = 204,
+                    message = "Successfully created user."
+            ),
+            @ApiResponse(
+                    code = 400,
+                    message = "UI Not Available",
+                    response = ErrorResponse.class
+            ),
+            @ApiResponse(
+                    code = 401,
+                    message = "User not authenticated",
+                    response = ErrorResponse.class
+            ),
+            @ApiResponse(
+                    code = 409,
+                    message = "User already exists. Error code: " + ErrorCodeCodes.USER_ALREADY_EXISTS_ERROR_CODE,
+                    response = ErrorResponse.class
+            ),
+            @ApiResponse(
+                    code = 500,
+                    message = ApiConstants.UNEXPECTED_ERROR_MESSAGE,
+                    response = ErrorResponse.class
+            )})
+    // Anyone can create without auth.
+    public void createUser(@Context HttpServletRequest request, @Valid CreateUserDto createUserDto) {
+        log.info("CreateUserDto: " + createUserDto);
+        userService.createUser(createUserDto);
+    }
+
+    @PUT
+    @Path("/update")
+    @Timed
+    @Authenticated
+    @ApiOperation(value = "Updates user details")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    code = 204,
+                    message = "Successfully modified user."
+            ),
+            @ApiResponse(
+                    code = 400,
+                    message = "UI Not Available",
+                    response = ErrorResponse.class
+            ),
+            @ApiResponse(
+                    code = 401,
+                    message = "User not authenticated",
+                    response = ErrorResponse.class
+            ),
+            @ApiResponse(
+                    code = 404,
+                    message = "User does not exist. Error code: " + ErrorCodeCodes.USER_ALREADY_EXISTS_ERROR_CODE,
+                    response = ErrorResponse.class
+            ),
+            @ApiResponse(
+                    code = 500,
+                    message = ApiConstants.UNEXPECTED_ERROR_MESSAGE,
+                    response = ErrorResponse.class
+            )})
+    // MIC assumption: Auth is required to modify any users
+    public void updateUser(@Context HttpServletRequest request, @Valid UpdateUserDto updateUserDto) {
+        log.info("changePassword: " + updateUserDto);
+        if (StringUtils.isEmpty(updateUserDto.getUsername()) && request != null) {
+            HttpSession session = request.getSession();
+            if (session != null) {
+                log.info("Set the username to: " + updateUserDto.getUsername());
+                userService.updateUser(updateUserDto);
+            }
+        }
     }
 
     @DELETE

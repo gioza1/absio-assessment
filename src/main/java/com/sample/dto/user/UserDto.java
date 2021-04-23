@@ -1,4 +1,4 @@
-package com.sample.dto;
+package com.sample.dto.user;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -22,4 +22,8 @@ public class UserDto {
     @Size(min = 1)
     @ApiModelProperty(value = "Username is email address", required = true, example = "john.doe@absio.com")
     private String username;
+    @ApiModelProperty(value = "User's first name", example = "John")
+    private String first_name;
+    @ApiModelProperty(value = "User's last name", example = "Doe")
+    private String last_name;
 }

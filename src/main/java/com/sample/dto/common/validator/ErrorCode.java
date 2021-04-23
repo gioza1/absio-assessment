@@ -1,4 +1,4 @@
-package com.sample.dto;
+package com.sample.dto.common.validator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

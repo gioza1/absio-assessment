@@ -1,4 +1,4 @@
-package com.sample.dto;
+package com.sample.dto.common.validator;
 
 public class ErrorCodeCodes {
     public static final String GENERAL_DATABASE_ERROR_CODE = "82a115b3-7d04-417d-b420-aceab70fa53c";

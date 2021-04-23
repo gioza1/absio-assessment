@@ -1,6 +1,6 @@
-package com.sample.dto;
+package com.sample.dto.user;
 
-import com.sample.dto.validator.annotation.Base64Encoded;
+import com.sample.dto.common.validator.annotation.Base64Encoded;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

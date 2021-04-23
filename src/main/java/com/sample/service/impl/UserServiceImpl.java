@@ -4,14 +4,20 @@ import com.sample.aspect.annotation.EnsureLogOut;
 import com.sample.dao.UserDao;
 import com.sample.domain.AuthenticationCredentials;
 import com.sample.domain.User;
+import com.sample.dto.user.CreateUserDto;
+import com.sample.dto.user.UpdateUserDto;
+import com.sample.exception.DatabaseException;
 import com.sample.exception.UserCredentialsException;
+import com.sample.exception.UserDuplicateException;
 import com.sample.exception.UserNotFoundException;
 import com.sample.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,8 +50,7 @@ public class UserServiceImpl implements UserService {
 
         if (user.isPresent()) {
             return user.get();
-        }
-        else {
+        } else {
             log.trace("Request user " + username + " not found");
             throw new UserNotFoundException("User " + username + " not found");
         }
@@ -58,12 +63,12 @@ public class UserServiceImpl implements UserService {
 
         if (user.isPresent()) {
             return user.get();
-        }
-        else {
+        } else {
             log.trace("Request user " + userId + " not found");
             throw new UserNotFoundException("User " + userId + " not found");
         }
     }
+
 
     @Override
     public List<User> getUsers() {
@@ -87,5 +92,32 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("Password could not be updated for " + username + ": not found");
         }
         return get(username);
+    }
+
+    @Override
+    public int createUser(CreateUserDto createUserDto) {
+        String username = createUserDto.getUsername();
+        log.info(MessageFormat.format("Creating user: {0} ", username));
+        Optional<User> user = userDao.get(username);
+        int generatedId = -1;
+        if (!user.isPresent()) {
+            generatedId = userDao.create(new ModelMapper().map(createUserDto, User.class));
+        } else {
+            log.trace("Creation of new user " + username + " failed (duplicate)");
+            throw new UserDuplicateException("User " + username + " already exists");
+        }
+        return generatedId;
+    }
+
+    @Override
+    public void updateUser(UpdateUserDto updateUserDto) {
+        String username = updateUserDto.getUsername();
+        log.info(MessageFormat.format("Updating user: {0} ", username));
+        Optional<User> user = userDao.get(username);
+        if (user.isPresent()) {
+            userDao.update(new ModelMapper().map(updateUserDto, User.class));
+        } else {
+            throw new UserNotFoundException("User details could not be updated for " + username + ": not found");
+        }
     }
 }

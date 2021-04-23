@@ -1,7 +1,7 @@
 package com.sample.exception.mapper;
 
-import com.sample.dto.ErrorCode;
-import com.sample.dto.ErrorResponse;
+import com.sample.dto.common.validator.ErrorCode;
+import com.sample.dto.common.validator.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.core.Response;

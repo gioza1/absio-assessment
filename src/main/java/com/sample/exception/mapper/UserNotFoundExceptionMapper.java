@@ -1,6 +1,6 @@
 package com.sample.exception.mapper;
 
-import com.sample.dto.ErrorCode;
+import com.sample.dto.common.validator.ErrorCode;
 import com.sample.exception.UserNotFoundException;
 import org.springframework.stereotype.Component;
 

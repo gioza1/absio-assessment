@@ -1,6 +1,6 @@
-package com.sample.dto.validator.annotation;
+package com.sample.dto.common.validator.annotation;
 
-import com.sample.dto.validator.Base64EncodedValidator;
+import com.sample.dto.common.validator.Base64EncodedValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;

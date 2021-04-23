@@ -1,4 +1,4 @@
-package com.sample.dto.validator.mapper;
+package com.sample.dto.common.validator.mapper;
 
 import lombok.extern.slf4j.Slf4j;
 

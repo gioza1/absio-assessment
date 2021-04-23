@@ -8,6 +8,13 @@ import java.util.Optional;
 public interface UserDao {
     int create(User user);
 
+    /** User can only update the ff:
+        first_name
+        last_name
+        password
+     **/
+    void update(User user);
+
     boolean delete(int id);
 
     Optional<User> get(String username);

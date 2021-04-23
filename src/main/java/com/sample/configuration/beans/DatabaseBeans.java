@@ -1,6 +1,7 @@
 package com.sample.configuration.beans;
 
 import com.sample.configuration.DatabaseConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.hsqldb.jdbc.JDBCDataSourceFactory;
 import org.hsqldb.persist.HsqlProperties;
 import org.springframework.context.annotation.Bean;
