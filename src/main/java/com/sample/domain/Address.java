@@ -5,17 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class Address {
     private Integer id;
-    private String password;
-    private String username;
-    private String first_name;
-    private String last_name;
-    private List<Address> addresses;
+    private Integer userId;
+    private String street;
+    private String state;
+    private String zip;
 }
