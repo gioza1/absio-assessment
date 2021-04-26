@@ -15,10 +15,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @Slf4j
@@ -45,7 +42,7 @@ public class AddressDaoImpl implements AddressDao {
                 .addValue("zip", address.getZip());
 
         if (jdbc.update(sql, namedParameters, holder) != 1) {
-            throw new DatabaseException("There was an error creating a user.");
+            throw new DatabaseException("There was an error creating an address.");
         }
 
         int id = holder.getKey().intValue();
@@ -56,7 +53,21 @@ public class AddressDaoImpl implements AddressDao {
 
     @Override
     public void update(Address address) {
-        // TODO
+        String sql = "update address " +
+                "set street = IsNull(:street, street), " +
+                "state = IsNull(:state, state), " +
+                "zip = IsNull(:zip, zip) " +
+                "where id = :id";
+
+        SqlParameterSource namedParameters = new MapSqlParameterSource()
+                .addValue("id", address.getId())
+                .addValue("street", address.getStreet())
+                .addValue("state", address.getState())
+                .addValue("zip", address.getZip());
+
+        if (jdbc.update(sql, namedParameters) != 1) {
+            throw new DatabaseException("There was an error updating an address.");
+        }
     }
 
     @Override
@@ -80,9 +91,17 @@ public class AddressDaoImpl implements AddressDao {
     }
 
     @Override
-    public List<Address> getAddressByUserId(int userId) {
-        String sql = "select * from address " +
-                "where user_id = :user_id";
+    public List<Address> getAddressByUserId(int userId, boolean doReturnUserId) {
+        // SQL Excludes user_id in response
+        String sql = "";
+        if (!doReturnUserId) {
+            sql = "select id,street,state,zip from address " +
+                    "where user_id = :user_id";
+        } else {
+            sql = "select * from address " +
+                    "where user_id = :user_id";
+        }
+        log.info("getAddressByUserId(): " + userId);
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("user_id", userId);
         try {
             return jdbc.query(sql, namedParameters, new AddressMapper());
@@ -95,5 +114,12 @@ public class AddressDaoImpl implements AddressDao {
     public List<Address> getAll() {
         String sql = "select * from address";
         return jdbc.query(sql, new AddressMapper());
+    }
+
+    @Override
+    public boolean deleteAddresses(int userId, List<Integer> addressIds) {
+        String sql = "delete from address where id in (:ids)";
+        MapSqlParameterSource  namedParameters = new MapSqlParameterSource().addValue("ids", addressIds);
+        return jdbc.update(sql, namedParameters) == 1;
     }
 }

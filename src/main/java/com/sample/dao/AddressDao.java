@@ -14,7 +14,9 @@ public interface AddressDao {
 
     Optional<Address> get(int id);
 
-    List<Address> getAddressByUserId(int id);
+    List<Address> getAddressByUserId(int id, boolean doReturnUserId);
 
     List<Address> getAll();
+
+    boolean deleteAddresses(int userId, List<Integer> addressIds);
 }

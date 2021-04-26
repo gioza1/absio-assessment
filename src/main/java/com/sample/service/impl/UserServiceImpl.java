@@ -1,12 +1,14 @@
 package com.sample.service.impl;
 
 import com.sample.aspect.annotation.EnsureLogOut;
+import com.sample.dao.AddressDao;
 import com.sample.dao.UserDao;
+import com.sample.domain.Address;
 import com.sample.domain.AuthenticationCredentials;
 import com.sample.domain.User;
 import com.sample.dto.user.CreateUserDto;
 import com.sample.dto.user.UpdateUserDto;
-import com.sample.exception.DatabaseException;
+import com.sample.exception.AddressNotFoundException;
 import com.sample.exception.UserCredentialsException;
 import com.sample.exception.UserDuplicateException;
 import com.sample.exception.UserNotFoundException;
@@ -20,11 +22,23 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
     private UserDao userDao;
+    private AddressDao addressDao;
+
+    @Autowired
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
+    @Autowired
+    public void setAddressDao(AddressDao addressDao) {
+        this.addressDao = addressDao;
+    }
 
     @Override
     @Transactional
@@ -60,9 +74,10 @@ public class UserServiceImpl implements UserService {
     public User getUser(int userId) {
         log.info("Requesting user " + userId);
         Optional<User> user = userDao.get(userId);
-
         if (user.isPresent()) {
-            return user.get();
+            User validUser = user.get();
+            validUser.setAddresses(addressDao.getAddressByUserId(validUser.getId(), false));
+            return validUser;
         } else {
             log.trace("Request user " + userId + " not found");
             throw new UserNotFoundException("User " + userId + " not found");
@@ -71,8 +86,16 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public List<User> getUsers() {
-        return userDao.get();
+    public List<User> getAllUsers() {
+        // NOTE: userDao.get() can be simplified with an SQL query.
+        // but MIC decided to use DAO implementation for coherency
+        // In case performance is an issue, SQL query would probably be best
+        List<User> userList = userDao.get();
+        for (User user : userList) {
+            List<Address> test = addressDao.getAddressByUserId(user.getId(), false);
+            user.setAddresses(test);
+        }
+        return userList;
     }
 
     @Override
@@ -81,10 +104,6 @@ public class UserServiceImpl implements UserService {
         // Add additional logout logic if needed. Session will be removed only after returning from this method.
     }
 
-    @Autowired
-    public void setUserDao(UserDao userDao) {
-        this.userDao = userDao;
-    }
 
     @Override
     public User updatePassword(String username, String password) {
@@ -101,7 +120,12 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userDao.get(username);
         int generatedId = -1;
         if (!user.isPresent()) {
-            generatedId = userDao.create(new ModelMapper().map(createUserDto, User.class));
+            User mappedUser = new ModelMapper().map(createUserDto, User.class);
+            generatedId = userDao.create(mappedUser);
+            for (Address address : mappedUser.getAddresses()) {
+                address.setUserId(generatedId);
+                addressDao.create(address);
+            }
         } else {
             log.trace("Creation of new user " + username + " failed (duplicate)");
             throw new UserDuplicateException("User " + username + " already exists");
@@ -115,9 +139,39 @@ public class UserServiceImpl implements UserService {
         log.info(MessageFormat.format("Updating user: {0} ", username));
         Optional<User> user = userDao.get(username);
         if (user.isPresent()) {
+            User validUser = user.get();
+            validUser.setAddresses(updateUserDto.getAddresses());
+            deleteUserAddresses(validUser); // Delete addresses first
+            for (Address address : validUser.getAddresses()) {
+                Integer addressId = address.getId();
+                if (addressId == null) {
+                    address.setUserId(validUser.getId());
+                    addressDao.create(address);
+                } else {
+                    Optional<Address> check = addressDao.get(addressId);
+                    if (check.isPresent()) {
+                        addressDao.update(address);
+                    } else {
+                        throw new AddressNotFoundException("Address details could not be updated for " + address.getId() + ": not found");
+                    }
+                }
+            }
             userDao.update(new ModelMapper().map(updateUserDto, User.class));
         } else {
             throw new UserNotFoundException("User details could not be updated for " + username + ": not found");
+        }
+    }
+
+    /**
+     * Helper method to remove 'unregistered' addresses
+     **/
+    private void deleteUserAddresses(User user) {
+        List<Integer> fromRequestIds = user.getAddresses().stream().map(Address::getId).collect(Collectors.toList());
+        List<Integer> fromDbIds = addressDao.getAddressByUserId(user.getId(), false).stream().map(Address::getId).collect(Collectors.toList());
+        fromDbIds.removeAll(fromRequestIds);
+        if (!fromDbIds.isEmpty()) {
+            log.info("Deleting the following addresses: " + fromDbIds);
+            addressDao.deleteAddresses(user.getId(), fromDbIds);
         }
     }
 }

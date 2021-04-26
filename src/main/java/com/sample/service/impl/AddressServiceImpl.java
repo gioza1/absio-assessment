@@ -22,7 +22,7 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public List<Address> getAddressByUserId(int userId) {
         log.info("Retrieving address(es) of user: " + userId);
-        List<Address> address = addressDao.getAddressByUserId(userId);
+        List<Address> address = addressDao.getAddressByUserId(userId, true);
         return address;
     }
 

@@ -11,6 +11,9 @@ public class ErrorCodeCodes {
     public static final String USER_NAME_ALREADY_EXISTS_ERROR_CODE = "f6f41533-57bd-4353-9d1e-846899706db3";
     public static final String USER_NOT_FOUND_ERROR_CODE = "ff214cf6-2866-454e-a209-c1acc75c3ceb";
 
+    public static final String ADDRESS_NOT_FOUND_ERROR_CODE = "509644c8-a6b9-11eb-bcbc-0242ac130002";
+
+
     private ErrorCodeCodes() {
     }
 }

@@ -13,7 +13,7 @@ public interface UserService {
 
     User getUser(int userId);
 
-    List<User> getUsers();
+    List<User> getAllUsers();
 
     void logout();
 

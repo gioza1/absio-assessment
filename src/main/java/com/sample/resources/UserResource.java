@@ -171,7 +171,7 @@ public class UserResource {
                     response = ErrorResponse.class
             )})
     public List<UserDto> getUsers() {
-        return ModelMapperUtils.mapAll(userService.getUsers(), UserDto.class, userMapper);
+        return ModelMapperUtils.mapAll(userService.getAllUsers(), UserDto.class, userMapper);
     }
 
     @PUT
@@ -217,7 +217,8 @@ public class UserResource {
     @ApiResponses(value = {
             @ApiResponse(
                     code = 204,
-                    message = "Successfully modified user."
+                    message = "Successfully modified user.",
+                    response = UserDto.class
             ),
             @ApiResponse(
                     code = 400,
@@ -241,8 +242,8 @@ public class UserResource {
             )})
     // MIC assumption: Auth is required to modify any users
     public void updateUser(@Context HttpServletRequest request, @Valid UpdateUserDto updateUserDto) {
-        log.info("changePassword: " + updateUserDto);
-        if (StringUtils.isEmpty(updateUserDto.getUsername()) && request != null) {
+        log.info("Updating user: " + updateUserDto);
+        if (!StringUtils.isEmpty(updateUserDto.getUsername()) && request != null) {
             HttpSession session = request.getSession();
             if (session != null) {
                 log.info("Set the username to: " + updateUserDto.getUsername());

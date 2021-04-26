@@ -9,13 +9,25 @@ import java.sql.SQLException;
 public class AddressMapper implements RowMapper<Address> {
     @Override
     public Address mapRow(ResultSet rs, int i) throws SQLException {
-        final Address address = Address.builder()
+        Address.AddressBuilder address = Address.builder();
+        if (columnExists(rs, "user_id")) {
+            address.userId(rs.getInt("user_id"));
+        }
+        return address
                 .id(rs.getInt("id"))
-                .userId(rs.getInt("user_id"))
-                .street(rs.getString("street"))
                 .state(rs.getString("state"))
-                .zip(rs.getString("zip"))
-                .build();
-        return address;
+                .street(rs.getString("street"))
+                .zip(rs.getString("zip")).build();
+    }
+
+    //TODO: Can be moved to a general helper class
+    private boolean columnExists(ResultSet rs, String column) {
+        try {
+            rs.findColumn(column);
+            return true;
+        } catch (SQLException sqlEx) {
+            // do nothing
+        }
+        return false;
     }
 }
