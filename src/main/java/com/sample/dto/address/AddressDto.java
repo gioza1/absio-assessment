@@ -16,10 +16,10 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @ApiModel
 public class AddressDto {
+    @NotNull
     @ApiModelProperty(value = "Address's database id", example = "1")
     private Integer id;
     @NotNull
-    @Size(min = 1)
     @ApiModelProperty(value = "Foreign key of user", required = true, example = "1")
     private Integer userId;
     @ApiModelProperty(value = "Street name", example = "2435 Fair Oaks Blvd")

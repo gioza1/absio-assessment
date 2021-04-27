@@ -2,18 +2,22 @@ package com.sample.util;
 
 import com.sample.configuration.beans.FlywayMigrationBeans;
 import com.sample.db.DatabaseConnectionStringProvider;
+import com.sample.domain.Address;
 import com.sample.domain.User;
-import com.sample.dto.validator.mapper.ConstraintViolationExceptionMapper;
-import com.sample.dto.validator.mapper.JerseyViolationExceptionMapper;
+import com.sample.dto.common.validator.mapper.ConstraintViolationExceptionMapper;
+import com.sample.dto.common.validator.mapper.JerseyViolationExceptionMapper;
+import com.sample.env.HttpServletRequestFactory;
 import com.sample.exception.mapper.DatabaseExceptionMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hsqldb.jdbc.JDBCDataSourceFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Application;
 import java.sql.SQLException;
@@ -25,17 +29,37 @@ public class TestUtils {
 
     public static Application buildApplication(Object resource) {
         return new ResourceConfig().register(resource)
-                                   .register(new ConstraintViolationExceptionMapper())
-                                   .register(new JerseyViolationExceptionMapper())
-                                   .register(new DatabaseExceptionMapper());
+                .register(new AbstractBinder() {
+                    @Override
+                    public void configure() {
+                        bindFactory(HttpServletRequestFactory.class)
+                                .to(HttpServletRequest.class);
+                    }
+                })
+                .register(new ConstraintViolationExceptionMapper())
+                .register(new JerseyViolationExceptionMapper())
+                .register(new DatabaseExceptionMapper())
+                .packages("com.*");
     }
 
     public static User createUser() {
         return User.builder()
-                   .id(0)
-                   .password(UUID.randomUUID().toString())
-                   .username(UUID.randomUUID().toString())
-                   .build();
+                .id(0)
+                .password(UUID.randomUUID().toString())
+                .username(UUID.randomUUID().toString())
+                .first_name("John")
+                .last_name("Doe")
+                .build();
+    }
+
+    public static Address createAddress() {
+        return Address.builder()
+                .id(0)
+                .userId(0)
+                .street("Dawis Rd")
+                .state("Cebu")
+                .zip("6045")
+                .build();
     }
 
     public static Flyway databaseFlyway(DataSource dataSource) {
@@ -62,8 +86,7 @@ public class TestUtils {
         properties.put(urlName, url);
         try {
             return JDBCDataSourceFactory.createDataSource(properties);
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new RuntimeException("DB source failed", exception);
         }
     }

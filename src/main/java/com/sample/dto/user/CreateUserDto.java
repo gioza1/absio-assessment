@@ -31,6 +31,8 @@ public class CreateUserDto {
     private String first_name;
     @ApiModelProperty(value = "User's last name", example = "Doe")
     private String last_name;
+    @NotNull
+    @Size(min = 1)
     @ApiModelProperty(value = "{\n'street':'234 Spruce Avenue Belleville',\n'state':'NJ'\n},\n{\n'zip':'07109'\n}")
     private List<Address> addresses;
 

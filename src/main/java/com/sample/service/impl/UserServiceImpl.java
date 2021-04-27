@@ -6,8 +6,6 @@ import com.sample.dao.UserDao;
 import com.sample.domain.Address;
 import com.sample.domain.AuthenticationCredentials;
 import com.sample.domain.User;
-import com.sample.dto.user.CreateUserDto;
-import com.sample.dto.user.UpdateUserDto;
 import com.sample.exception.AddressNotFoundException;
 import com.sample.exception.UserCredentialsException;
 import com.sample.exception.UserDuplicateException;
@@ -114,13 +112,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int createUser(CreateUserDto createUserDto) {
-        String username = createUserDto.getUsername();
+    public int createUser(User createUser) {
+        String username = createUser.getUsername();
         log.info(MessageFormat.format("Creating user: {0} ", username));
         Optional<User> user = userDao.get(username);
         int generatedId = -1;
         if (!user.isPresent()) {
-            User mappedUser = new ModelMapper().map(createUserDto, User.class);
+            User mappedUser = new ModelMapper().map(createUser, User.class);
             generatedId = userDao.create(mappedUser);
             for (Address address : mappedUser.getAddresses()) {
                 address.setUserId(generatedId);
@@ -134,13 +132,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(UpdateUserDto updateUserDto) {
-        String username = updateUserDto.getUsername();
+    @Transactional
+    public void updateUser(User updateUser) {
+        String username = updateUser.getUsername();
         log.info(MessageFormat.format("Updating user: {0} ", username));
         Optional<User> user = userDao.get(username);
         if (user.isPresent()) {
             User validUser = user.get();
-            validUser.setAddresses(updateUserDto.getAddresses());
+            validUser.setAddresses(updateUser.getAddresses());
             deleteUserAddresses(validUser); // Delete addresses first
             for (Address address : validUser.getAddresses()) {
                 Integer addressId = address.getId();
@@ -149,14 +148,14 @@ public class UserServiceImpl implements UserService {
                     addressDao.create(address);
                 } else {
                     Optional<Address> check = addressDao.get(addressId);
-                    if (check.isPresent()) {
+                    if (check.isPresent() && check.get().getUserId() == validUser.getId()) {
                         addressDao.update(address);
                     } else {
                         throw new AddressNotFoundException("Address details could not be updated for " + address.getId() + ": not found");
                     }
                 }
             }
-            userDao.update(new ModelMapper().map(updateUserDto, User.class));
+            userDao.update(new ModelMapper().map(updateUser, User.class));
         } else {
             throw new UserNotFoundException("User details could not be updated for " + username + ": not found");
         }

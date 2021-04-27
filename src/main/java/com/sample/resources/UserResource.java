@@ -3,6 +3,7 @@ package com.sample.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.sample.aspect.annotation.Authenticated;
 import com.sample.domain.AuthenticationCredentials;
+import com.sample.domain.User;
 import com.sample.dto.common.validator.ErrorCodeCodes;
 import com.sample.dto.common.validator.ErrorResponse;
 import com.sample.dto.user.*;
@@ -206,7 +207,7 @@ public class UserResource {
     // Anyone can create without auth.
     public void createUser(@Context HttpServletRequest request, @Valid CreateUserDto createUserDto) {
         log.info("CreateUserDto: " + createUserDto);
-        userService.createUser(createUserDto);
+        userService.createUser(userMapper.map(createUserDto, User.class));
     }
 
     @PUT
@@ -247,7 +248,7 @@ public class UserResource {
             HttpSession session = request.getSession();
             if (session != null) {
                 log.info("Set the username to: " + updateUserDto.getUsername());
-                userService.updateUser(updateUserDto);
+                userService.updateUser(userMapper.map(updateUserDto, User.class));
             }
         }
     }

@@ -2,9 +2,7 @@ package com.sample.resources;
 
 import com.sample.domain.AuthenticationCredentials;
 import com.sample.domain.User;
-import com.sample.dto.AuthenticationCredentialsDto;
-import com.sample.dto.ChangePasswordDto;
-import com.sample.dto.UserDto;
+import com.sample.dto.user.*;
 import com.sample.service.UserService;
 import com.sample.util.TestUtils;
 import org.glassfish.jersey.test.JerseyTestNg;
@@ -16,9 +14,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.*;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 import static com.sample.util.TestUtils.buildApplication;
 import static org.mockito.Mockito.*;
@@ -26,6 +22,7 @@ import static org.testng.Assert.assertEquals;
 
 public class UserResourceTest extends JerseyTestNg.ContainerPerClassTest {
     private UserService userService;
+    private final ModelMapper userMapper = new ModelMapper();
 
     private Invocation.Builder buildWithGenericHeaders(WebTarget target) {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -53,31 +50,41 @@ public class UserResourceTest extends JerseyTestNg.ContainerPerClassTest {
         return buildWithGenericHeaders(target).put(Entity.entity(changePasswordDto, MediaType.APPLICATION_JSON_TYPE));
     }
 
+    private Response put(CreateUserDto createUserDto) {
+        WebTarget target = target("/user/create");
+        return buildWithGenericHeaders(target).put(Entity.entity(createUserDto, MediaType.APPLICATION_JSON_TYPE));
+    }
+
+    private Response put(UpdateUserDto updateUserDto) {
+        WebTarget target = target("/user/update");
+        return buildWithGenericHeaders(target).put(Entity.entity(updateUserDto, MediaType.APPLICATION_JSON_TYPE));
+    }
+
     @Test
-    void testAuthenticate() throws Exception {
+    void testAuthenticate() {
         String pwd = "pwd";
         String b64Pwd = Base64.getEncoder().encodeToString(pwd.getBytes());
         AuthenticationCredentialsDto credentialsDto = AuthenticationCredentialsDto.builder()
-                                                                                  .password(b64Pwd)
-                                                                                  .username("user")
-                                                                                  .build();
+                .password(b64Pwd)
+                .username("user")
+                .build();
         Response response = put(credentialsDto);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
         verify(userService).authenticate(AuthenticationCredentials.builder()
-                                                                  .password(b64Pwd)
-                                                                  .username("user")
-                                                                  .build());
+                .password(b64Pwd)
+                .username("user")
+                .build());
         reset(userService);
     }
 
     @Test
-    void testChangePassword() throws Exception {
+    void testChangePassword() {
         String pwd = "pwd";
         String b64Pwd = Base64.getEncoder().encodeToString(pwd.getBytes());
         ChangePasswordDto changePasswordDto = ChangePasswordDto.builder()
-                                                               .newPassword(b64Pwd)
-                                                               .username("user")
-                                                               .build();
+                .newPassword(b64Pwd)
+                .username("user")
+                .build();
         Response response = put(changePasswordDto);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
         verify(userService).updatePassword("user", b64Pwd);
@@ -97,14 +104,14 @@ public class UserResourceTest extends JerseyTestNg.ContainerPerClassTest {
     }
 
     @Test
-    void testGetAll() {
+    void testGetAllUsers() {
         ModelMapper mapper = new ModelMapper();
         User user = TestUtils.createUser();
         List<UserDto> dtos = new ArrayList<>();
         List<User> users = new ArrayList<>();
         dtos.add(mapper.map(user, UserDto.class));
         users.add(user);
-        when(userService.getUsers()).thenReturn(users);
+        when(userService.getAllUsers()).thenReturn(users);
         WebTarget target = target("/user");
         Response response = buildWithGenericHeaders(target).get();
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
@@ -114,7 +121,43 @@ public class UserResourceTest extends JerseyTestNg.ContainerPerClassTest {
     }
 
     @Test
-    void testLogout() throws Exception {
+    void testCreateUser() {
+        String pwd = "pwd";
+        String b64Pwd = Base64.getEncoder().encodeToString(pwd.getBytes());
+        CreateUserDto createUserDto = CreateUserDto.builder()
+                .username("lorem")
+                .password(b64Pwd)
+                .first_name("John")
+                .last_name("Doe")
+                .addresses(Collections.singletonList(TestUtils.createAddress()))
+                .build();
+        Response response = put(createUserDto);
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        verify(userService).createUser(userMapper.map(createUserDto, User.class));
+        reset(userService);
+    }
+
+    @Test
+    void testUpdateUser() {
+        String pwd = "pwd";
+        String b64Pwd = Base64.getEncoder().encodeToString(pwd.getBytes());
+        UpdateUserDto updateUserDto = UpdateUserDto.builder()
+                .username("lorem")
+                .password(b64Pwd)
+                .first_name("John")
+                .last_name("Doe")
+                .addresses(Collections.singletonList(TestUtils.createAddress()))
+                .build();
+
+        Response response = put(updateUserDto);
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        User mapped = userMapper.map(updateUserDto, User.class);
+        verify(userService).updateUser(mapped);
+        reset(userService);
+    }
+
+    @Test
+    void testLogout() {
         Response response = delete();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
         verify(userService).logout();
