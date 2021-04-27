@@ -56,9 +56,9 @@ public class TestUtils {
         return Address.builder()
                 .id(0)
                 .userId(0)
-                .street("Dawis Rd")
-                .state("Cebu")
-                .zip("6045")
+                .street("234 Spruce Avenue Belleville")
+                .state("NJ")
+                .zip("07109")
                 .build();
     }
 

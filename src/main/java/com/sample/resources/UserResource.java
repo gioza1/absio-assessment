@@ -7,6 +7,7 @@ import com.sample.domain.User;
 import com.sample.dto.common.validator.ErrorCodeCodes;
 import com.sample.dto.common.validator.ErrorResponse;
 import com.sample.dto.user.*;
+import com.sample.exception.DatabaseException;
 import com.sample.service.UserService;
 import com.sample.session.UserSession;
 import com.sample.util.ModelMapperUtils;
@@ -26,6 +27,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.util.List;
 import java.util.Objects;
 
@@ -112,7 +114,7 @@ public class UserResource {
                     message = ApiConstants.UNEXPECTED_ERROR_MESSAGE,
                     response = ErrorResponse.class
             )})
-    public void changePassword(@Context HttpServletRequest request, @Valid ChangePasswordDto changePasswordDto) {
+    public String changePassword(@Context HttpServletRequest request, @Valid ChangePasswordDto changePasswordDto) {
         log.info("changePassword: " + changePasswordDto);
         if (StringUtils.isEmpty(changePasswordDto.getUsername()) && request != null) {
             HttpSession session = request.getSession();
@@ -124,6 +126,7 @@ public class UserResource {
         }
 
         userService.updatePassword(changePasswordDto.getUsername(), changePasswordDto.getNewPassword());
+        return "Successfully changed password.";
     }
 
     @GET
@@ -205,9 +208,10 @@ public class UserResource {
                     response = ErrorResponse.class
             )})
     // Anyone can create without auth.
-    public void createUser(@Context HttpServletRequest request, @Valid CreateUserDto createUserDto) {
+    public String createUser(@Context HttpServletRequest request, @Valid CreateUserDto createUserDto) {
         log.info("CreateUserDto: " + createUserDto);
         userService.createUser(userMapper.map(createUserDto, User.class));
+        return "Successfully created user.";
     }
 
     @PUT
@@ -242,15 +246,17 @@ public class UserResource {
                     response = ErrorResponse.class
             )})
     // MIC assumption: Auth is required to modify any users
-    public void updateUser(@Context HttpServletRequest request, @Valid UpdateUserDto updateUserDto) {
+    public String updateUser(@Context HttpServletRequest request, @Valid UpdateUserDto updateUserDto) {
         log.info("Updating user: " + updateUserDto);
         if (!StringUtils.isEmpty(updateUserDto.getUsername()) && request != null) {
             HttpSession session = request.getSession();
             if (session != null) {
                 log.info("Set the username to: " + updateUserDto.getUsername());
                 userService.updateUser(userMapper.map(updateUserDto, User.class));
+                return "Successfully updated user.";
             }
         }
+        return "Something went wrong";
     }
 
     @DELETE

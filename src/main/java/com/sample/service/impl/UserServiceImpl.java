@@ -90,8 +90,8 @@ public class UserServiceImpl implements UserService {
         // In case performance is an issue, SQL query would probably be best
         List<User> userList = userDao.get();
         for (User user : userList) {
-            List<Address> test = addressDao.getAddressByUserId(user.getId(), false);
-            user.setAddresses(test);
+            List<Address> addresses = addressDao.getAddressByUserId(user.getId(), false);
+            user.setAddresses(addresses);
         }
         return userList;
     }

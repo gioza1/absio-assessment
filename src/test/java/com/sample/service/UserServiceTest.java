@@ -49,6 +49,7 @@ public class UserServiceTest extends AbstractDaoTest {
     @Override
     protected void nullOutDaos() {
         userDao = null;
+        addressDao = null;
         userService = null;
     }
 

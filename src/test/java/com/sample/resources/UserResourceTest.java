@@ -129,7 +129,7 @@ public class UserResourceTest extends JerseyTestNg.ContainerPerClassTest {
                 .password(b64Pwd)
                 .first_name("John")
                 .last_name("Doe")
-                .addresses(Collections.singletonList(TestUtils.createAddress()))
+                .addresses(Collections.singletonList(new ModelMapper().map(TestUtils.createAddress(), UserAddressDto.class)))
                 .build();
         Response response = put(createUserDto);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
@@ -146,7 +146,7 @@ public class UserResourceTest extends JerseyTestNg.ContainerPerClassTest {
                 .password(b64Pwd)
                 .first_name("John")
                 .last_name("Doe")
-                .addresses(Collections.singletonList(TestUtils.createAddress()))
+                .addresses(Collections.singletonList(new ModelMapper().map(TestUtils.createAddress(), UserAddressDto.class)))
                 .build();
 
         Response response = put(updateUserDto);

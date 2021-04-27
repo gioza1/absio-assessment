@@ -1,6 +1,5 @@
 package com.sample.dto.user;
 
-import com.sample.domain.Address;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -31,5 +30,5 @@ public class UserDto {
     @NotNull
     @Size(min = 1)
     @ApiModelProperty(value = "{\n'street':'234 Spruce Avenue Belleville',\n'state':'NJ'\n},\n{\n'zip':'07109'\n}")
-    private List<Address> addresses;
+    private List<UserAddressDto> addresses;
 }
