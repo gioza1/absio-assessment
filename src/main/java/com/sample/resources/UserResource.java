@@ -246,10 +246,9 @@ public class UserResource {
     // MIC assumption: Auth is required to modify any users
     public void updateUser(@Context HttpServletRequest request, @Valid UpdateUserDto updateUserDto) {
         log.info("Updating user: " + updateUserDto);
-        if (!StringUtils.isEmpty(updateUserDto.getUsername()) && request != null) {
+        if (request != null) {
             HttpSession session = request.getSession();
             if (session != null) {
-                log.info("Set the username to: " + updateUserDto.getUsername());
                 userService.updateUser(userMapper.map(updateUserDto, User.class));
             }
         }

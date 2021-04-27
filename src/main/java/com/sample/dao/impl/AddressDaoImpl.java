@@ -101,7 +101,6 @@ public class AddressDaoImpl implements AddressDao {
             sql = "select * from address " +
                     "where user_id = :user_id";
         }
-        log.info("getAddressByUserId(): " + userId);
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("user_id", userId);
         try {
             return jdbc.query(sql, namedParameters, new AddressMapper());
