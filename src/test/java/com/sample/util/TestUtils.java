@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Application;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -60,6 +62,23 @@ public class TestUtils {
                 .state("NJ")
                 .zip("07109")
                 .build();
+    }
+
+    public static List<Address> createAddresses() {
+        return Arrays.asList(Address.builder()
+                        .id(0)
+                        .userId(0)
+                        .street("234 Spruce Avenue Belleville")
+                        .state("NJ")
+                        .zip("07109")
+                        .build(),
+                Address.builder()
+                        .id(1)
+                        .userId(0)
+                        .street("4031 Goodwin Avenue")
+                        .state("WA")
+                        .zip("99205")
+                        .build());
     }
 
     public static Flyway databaseFlyway(DataSource dataSource) {

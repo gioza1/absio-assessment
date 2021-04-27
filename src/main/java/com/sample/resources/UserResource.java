@@ -92,7 +92,7 @@ public class UserResource {
     @ApiResponses(value = {
             @ApiResponse(
                     code = 204,
-                    message = "Successfully changed password."
+                    message = "Successfully changed password. Response body is empty."
             ),
             @ApiResponse(
                     code = 400,
@@ -114,7 +114,7 @@ public class UserResource {
                     message = ApiConstants.UNEXPECTED_ERROR_MESSAGE,
                     response = ErrorResponse.class
             )})
-    public String changePassword(@Context HttpServletRequest request, @Valid ChangePasswordDto changePasswordDto) {
+    public void changePassword(@Context HttpServletRequest request, @Valid ChangePasswordDto changePasswordDto) {
         log.info("changePassword: " + changePasswordDto);
         if (StringUtils.isEmpty(changePasswordDto.getUsername()) && request != null) {
             HttpSession session = request.getSession();
@@ -126,7 +126,6 @@ public class UserResource {
         }
 
         userService.updatePassword(changePasswordDto.getUsername(), changePasswordDto.getNewPassword());
-        return "Successfully changed password.";
     }
 
     @GET
@@ -185,7 +184,7 @@ public class UserResource {
     @ApiResponses(value = {
             @ApiResponse(
                     code = 204,
-                    message = "Successfully created user."
+                    message = "Successfully created user. Response body is empty."
             ),
             @ApiResponse(
                     code = 400,
@@ -208,10 +207,9 @@ public class UserResource {
                     response = ErrorResponse.class
             )})
     // Anyone can create without auth.
-    public String createUser(@Context HttpServletRequest request, @Valid CreateUserDto createUserDto) {
+    public void createUser(@Context HttpServletRequest request, @Valid CreateUserDto createUserDto) {
         log.info("CreateUserDto: " + createUserDto);
         userService.createUser(userMapper.map(createUserDto, User.class));
-        return "Successfully created user.";
     }
 
     @PUT
@@ -222,7 +220,7 @@ public class UserResource {
     @ApiResponses(value = {
             @ApiResponse(
                     code = 204,
-                    message = "Successfully modified user.",
+                    message = "Successfully modified user. Response body is empty.",
                     response = UserDto.class
             ),
             @ApiResponse(
@@ -246,17 +244,15 @@ public class UserResource {
                     response = ErrorResponse.class
             )})
     // MIC assumption: Auth is required to modify any users
-    public String updateUser(@Context HttpServletRequest request, @Valid UpdateUserDto updateUserDto) {
+    public void updateUser(@Context HttpServletRequest request, @Valid UpdateUserDto updateUserDto) {
         log.info("Updating user: " + updateUserDto);
         if (!StringUtils.isEmpty(updateUserDto.getUsername()) && request != null) {
             HttpSession session = request.getSession();
             if (session != null) {
                 log.info("Set the username to: " + updateUserDto.getUsername());
                 userService.updateUser(userMapper.map(updateUserDto, User.class));
-                return "Successfully updated user.";
             }
         }
-        return "Something went wrong";
     }
 
     @DELETE

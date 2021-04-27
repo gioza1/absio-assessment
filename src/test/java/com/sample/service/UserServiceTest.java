@@ -26,7 +26,7 @@ public class UserServiceTest extends AbstractDaoTest {
     private static String USERNAME = "administrator";
     private static String FIRST_NAME = "John";
     private static String LAST_NAME = "Doe";
-    private static List<Address> ADDRESSES = new ArrayList<>(Arrays.asList(TestUtils.createAddress()));
+    private static List<Address> ADDRESSES = TestUtils.createAddresses();
 
     private UserDao userDao;
     private AddressDao addressDao;
@@ -143,7 +143,9 @@ public class UserServiceTest extends AbstractDaoTest {
     }
 
     private void insertAddress(User user) {
-        ADDRESSES.get(0).setUserId(null);
+        for (Address a : ADDRESSES) {
+            a.setUserId(null);
+        }
         user.setAddresses(ADDRESSES);
     }
 
